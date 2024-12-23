@@ -126,7 +126,7 @@ flowchart LR
 ### インフラ (Docker)
 
 - ローカルマシンでの動作確認やデプロイ環境構築が簡単
-- それぞれのサービス（フロントエンド、バックエンド、DB）をコンテナとして分けることで �� 拡張性・管理性を高める
+- それぞれのサービス（フロントエンド、バックエンド、DB）をコンテナとして分けることで、 拡張性・管理性を高める
 
 ### CI/CD
 
@@ -298,6 +298,108 @@ mytodoapp/
   └─ db/
       └─ (データ保存用のVolumeなど)
 ```
+
+### Dockerfile の ��� 成
+
+#### フロントエンド用 Dockerfile (frontend/Dockerfile)
+
+開発環境用の構成:
+
+```dockerfile
+# Node.js を使った軽量イメージ
+FROM node:18-alpine
+
+# コンテナ内の作業ディレクトリを設定
+WORKDIR /app
+
+# package.json と package-lock.json をコピー
+COPY package*.json ./
+
+# 依存関係をインストール
+RUN npm install
+
+# ソースコードをコピー
+COPY . .
+
+# Reactの開発サーバが使用するポート
+EXPOSE 3000
+
+# Reactアプリを起動
+CMD ["npm", "start"]
+```
+
+本番環境用の構成（Nginx + 最適化ビルド）:
+
+```dockerfile
+# 1. Build Stage
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# 2. Production Stage
+FROM nginx:alpine
+# ビルド成果物をNginxの公開ディレクトリへコピー
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Nginx が使う80番を開ける
+EXPOSE 80
+
+# Nginxをフォアグラウンド起動
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### バックエンド用 Dockerfile (backend/Dockerfile)
+
+開発環境用の構成（ts-node による直接実行）:
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+# 4000番をAPIサーバ用ポートとして開放
+EXPOSE 4000
+
+# サーバを起動
+CMD ["npx", "ts-node", "src/server.ts"]
+```
+
+本番環境用の構成（TypeScript コンパイル後の実行）:
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# TypeScript をコンパイル
+RUN npm run build  # package.json 内で "build": "tsc" と定義
+
+EXPOSE 4000
+
+# dist/server.js を起動
+CMD ["node", "dist/server.js"]
+```
+
+注意点：
+
+- 開発環境では、ホットリロードやデバッグのしやすさを重視した構成を採用
+- 本番環境では、イメージサイズの最適化やパフォーマンスを重視した構成を採用
+- フロントエンドの本番環境では、静的ファイルの配信に特化した Nginx を使用
+- バックエンドの本番環境では、TypeScript のコンパイル済みコードを実行
 
 #### docker-compose.yml の例
 
