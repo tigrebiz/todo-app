@@ -130,9 +130,9 @@ todo-app/
 
 ```mermaid
 flowchart LR
-    A[ユーザー] --HTTP--> B[フロントエンド (React + TS)]
-    B --HTTP/REST--> C[バックエンド (Express + TS)]
-    C --SQL--> D[PostgreSQL]
+    A[ユーザー] --HTTP--> B[フロントエンド_React_TypeScript]
+    B --HTTP/REST--> C[バックエンド_Node.js + Express + TypeScript]
+    C --SQL--> D[DB_PostgreSQL]
 ```
 
 ### 3.1 構成要素
@@ -257,6 +257,21 @@ flowchart TD
     D --> B
     C --> B
 ```
+
+- ログイン画面
+  - メール & パスワードを入力し、JWT を取得
+  - サインアップ画面 (または同画面で登録)
+- Todo 一覧画面
+  - ログイン中のユーザーの Todo を表示
+  - 新規作成ボタン → 登録画面へ
+  - 編集ボタン → 編集画面へ
+  - 削除ボタン → Todo を削除
+- Todo 登録画面
+  - タイトル、説明、ステータスを入力し登録
+  - 登録成功で一覧へ
+- Todo 編集画面
+  - 既存 Todo を編集
+  - 保存成功で一覧へ
 
 ### 7.2 API 仕様例
 
