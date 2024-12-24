@@ -299,7 +299,7 @@ mytodoapp/
       └─ (データ保存用のVolumeなど)
 ```
 
-### Dockerfile の ��� 成
+### Dockerfile の構成
 
 #### フロントエンド用 Dockerfile (frontend/Dockerfile)
 
